@@ -1,3 +1,5 @@
+<img src="images/lung_example.gif" height="400px" />
+
 # Introduction
 
 This repository contains the code for training the final nnU-Net based segmentation model for the publication 
