@@ -2,6 +2,7 @@ from typing import Tuple
 
 import numpy as np
 from batchgenerators.dataloading.multi_threaded_augmenter import MultiThreadedAugmenter
+from batchgenerators.dataloading.nondet_multi_threaded_augmenter import NonDetMultiThreadedAugmenter
 from batchgenerators.transforms.abstract_transforms import Compose, AbstractTransform
 from batchgenerators.transforms.channel_selection_transforms import SegChannelSelectionTransform, \
     DataChannelSelectionTransform
