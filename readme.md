@@ -4,7 +4,7 @@
 
 This repository contains the code for training the final nnU-Net based segmentation model for the publication 
 "Multimodal imaging and deep learning unveil pulmonary delivery profiles and acinar migration of tissue-resident 
-macrophages in the lung" which was submitted to and is currently under review at Nature Biotechnology.
+macrophages in the lung" which is currently under review.
 
 The nnU-Net model used for this publication makes changes to the target spacing for the 3d_fulles configuration and 
 contains several changes to the data augmentation pipeline. The latter greatly increase the robustness of the network 
