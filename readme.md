@@ -33,13 +33,28 @@ work out just fine!
    - copy `nnUNetTrainerV2_airwayAug.py` into `nnunet/training/network_training/`
 6) Set the necessary nnU-Net environment variables according to [these instructions](https://github.com/MIC-DKFZ/nnUNet/blob/nnunetv1/documentation/setting_up_paths.md)
 
-**Done!**
+**Done!** Typically this installation process takes 5-10 minutes.
 
-# Training
+# Demo 
+## Download the demo lung
+Download the demo lung ITLI_007 from [here](https://zenodo.org/records/7413818/files/ITLI_007.zip?download=1) (590.3GB) and unzip the file.
+
+## Convert the file to nnU-Net format
+The raw lung data comes in tif format. Transform the raw lung ```ITLI_007/01_Raw imaging data_compressed/ITLI_007_raw_AF520nm_09-45-10.tif``` to nnU-Net format as described  [here](https://github.com/MIC-DKFZ/nnUNet/blob/nnunetv1/documentation/dataset_conversion.md).
+
+## Run the inference
+Download the [Pretrained models](#pretrained-models) and follow the instructions in [Inference/Prediction](#inferenceprediction) to predict the airways of the lung.
+Running the inference requires one or multiple GPUs and takes more than an hour.
+Expected output is the predicted airway segmentation that matches the airway segmentation in the folder ```ITLI_007/02_AI results```.
+
+
+# Reproducing the Training
 If you prefer to use our already trained models, see [Pretrained models](#pretrained-models)
 ## Data conversion
-The final format in which the data will be published is not yet decided, which is why we currently cannot offer a 
-data conversion script. As soon as the data is published we will add it to this repository!
+
+The data is published and can be downloaded here: https://zenodo.org/records/7413818.
+To reproduce the training the data needs to converted to nnU-Net format as described  [here](https://github.com/MIC-DKFZ/nnUNet/blob/nnunetv1/documentation/dataset_conversion.md).
+
 
 ## nnU-Net planning and preprocessing
 Run the following:
