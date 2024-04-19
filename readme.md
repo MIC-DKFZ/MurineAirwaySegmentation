@@ -40,7 +40,7 @@ work out just fine!
 Download the demo lung ITLI_007 from [here](https://zenodo.org/records/7413818/files/ITLI_007.zip?download=1) (590.3GB) and unzip the file.
 
 ## Convert the file to nnU-Net format
-The raw lung data comes in tif format. Transform the raw lung ```ITLI_007/01_Raw imaging data_compressed/ITLI_007_raw_AF520nm_09-45-10.tif``` to nnU-Net format as described  [here](https://github.com/MIC-DKFZ/nnUNet/blob/nnunetv1/documentation/dataset_conversion.md).
+The raw lung data comes in tif format. Transform the raw lung ```ITLI_007/01_Raw imaging data_compressed/ITLI_007_raw_AF520nm_09-45-10.tif``` to nnU-Net format as described [here](https://github.com/MIC-DKFZ/nnUNet/blob/nnunetv1/documentation/dataset_conversion.md).
 
 ## Run the inference
 Download the [Pretrained models](#pretrained-models) and follow the instructions in [Inference/Prediction](#inferenceprediction) to predict the airways of the lung.
@@ -53,7 +53,7 @@ If you prefer to use our already trained models, see [Pretrained models](#pretra
 ## Data conversion
 
 The data is published and can be downloaded here: https://zenodo.org/records/7413818.
-To reproduce the training the data needs to converted to nnU-Net format as described  [here](https://github.com/MIC-DKFZ/nnUNet/blob/nnunetv1/documentation/dataset_conversion.md).
+To reproduce the training the data needs to be converted to nnU-Net format as described [here](https://github.com/MIC-DKFZ/nnUNet/blob/nnunetv1/documentation/dataset_conversion.md). For that you can execute the provided `data_conversion.py` script. Set the path in the script to the folder where you downloaded the zenodo data. It will automatically unzip the train cases, transform them to nifti and save them as an nnU-Net dataset in the respective directory for raw images that you have set (as described in the [installation](#installation) step 6).
 
 
 ## nnU-Net planning and preprocessing
