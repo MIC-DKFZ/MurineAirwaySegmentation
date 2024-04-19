@@ -40,10 +40,15 @@ work out just fine!
 Download the demo lung ITLI_007 from [here](https://zenodo.org/records/7413818/files/ITLI_007.zip?download=1) (590.3GB) and unzip the file.
 
 ## Convert the file to nnU-Net format
-The raw lung data comes in tif format. Transform the raw lung ```ITLI_007/01_Raw imaging data_compressed/ITLI_007_raw_AF520nm_09-45-10.tif``` to nnU-Net format as described [here](https://github.com/MIC-DKFZ/nnUNet/blob/nnunetv1/documentation/dataset_conversion.md).
+The raw lung data comes in tif format. Transform the raw lung ```ITLI_007/01_Raw imaging data_compressed/ITLI_007_raw_AF520nm_09-45-10.tif``` to nnU-Net format as described [here](https://github.com/MIC-DKFZ/nnUNet/blob/nnunetv1/documentation/dataset_conversion.md). You can use the provided `demo_convert_file.py` script by setting the path to your downloaded `ITLI_007` tif file. 
+
+```commandline
+python demo_convert_file.py
+```
 
 ## Run the inference
 Download the [Pretrained models](#pretrained-models) and follow the instructions in [Inference/Prediction](#inferenceprediction) to predict the airways of the lung.
+The `FOLDER_WITH_INPUT_IMAGES` is the folder containing your converted lung file.
 Running the inference requires one or multiple GPUs and takes more than an hour.
 Expected output is the predicted airway segmentation that matches the airway segmentation in the folder ```ITLI_007/02_AI results```.
 
@@ -86,7 +91,7 @@ read/write conflicts if several were to do this simultaneously).
 
 # Inference/Prediction
 Once training for all 5 folds is completed, you can use the trained models to perform predictions on new images. For that, 
-the images must again be converted into nnU-Net format. The script to do this will be added to the repository soon.
+the images must again be converted into nnU-Net format. See the [demo](#demo) for an example of converting a single file.
 After conversion, prediction can be run like that:
 
 ```commandline
