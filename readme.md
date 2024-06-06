@@ -6,6 +6,8 @@ This repository contains the code for training the final nnU-Net based segmentat
 
 The nnU-Net model used for this publication includes modifications to the target spacing for the 3d_fullres configuration and introduces several changes to the data augmentation pipeline. These enhancements significantly increase the robustness of the network against the commonly observed image artifacts in our dataset. Specifically, we have adapted the standard nnU-Net framework for this particular use case, incorporating tailored augmentation techniques (detailed in the file located at [nnUNetTrainerV2_airwayAug](https://github.com/MIC-DKFZ/MurineAirwaySegmentation/blob/main/nnUNetTrainerV2_airwayAug.py)) and sampling strategies (specified at [airway_segmentation_planner.py](https://github.com/MIC-DKFZ/MurineAirwaySegmentation/blob/main/airway_segmentation_planner.py)) to better address the unique challenges presented by pulmonary imaging.
 
+The data augmentation pipeline for training has been adapted to the relevant imaging artifacts present in the dataset. A custom slice illumination transform was used for simulating dark lung centers caused by illumination issues. Also blurring, contrast, brightness and sharpness transforms were applied locally in images to imitate blurred areas, halos, and different signal-to-noise ratios. Lastly, blank rectangle transforms were used to mimic missing information due to artifacts in the images. Using the additional augmentations, we were able to train a model that is highly robust.
+
 # Installation
 Our installation instructions make use of concrete git commit hashes for batchgenerators and nnU-Net in order to 
 ensure reproducibility. Both repositories are under constant development and we cannot guarantee compatibility looking 
