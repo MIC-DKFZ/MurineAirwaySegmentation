@@ -2,13 +2,9 @@
 
 # Introduction
 
-This repository contains the code for training the final nnU-Net based segmentation model for the publication 
-"Multimodal imaging and deep learning unveil pulmonary delivery profiles and acinar migration of tissue-resident 
-macrophages in the lung" which is currently under review.
+This repository contains the code for training the final nnU-Net based segmentation model for the publication "Multimodal imaging and deep learning unveil pulmonary delivery profiles and acinar migration of tissue-resident macrophages in the lung," which is currently under review.
 
-The nnU-Net model used for this publication makes changes to the target spacing for the 3d_fulles configuration and 
-contains several changes to the data augmentation pipeline. The latter greatly increase the robustness of the network 
-with respect to the commonly observed image artifacts in the dataset.
+The nnU-Net model used for this publication includes modifications to the target spacing for the 3d_fullres configuration and introduces several changes to the data augmentation pipeline. These enhancements significantly increase the robustness of the network against the commonly observed image artifacts in our dataset. Specifically, we have adapted the standard nnU-Net framework for this particular use case, incorporating tailored augmentation techniques (detailed in the file located at [nnUNetTrainerV2_airwayAug](https://github.com/MIC-DKFZ/MurineAirwaySegmentation/blob/main/nnUNetTrainerV2_airwayAug.py)) and sampling strategies (specified at [airway_segmentation_planner.py](https://github.com/MIC-DKFZ/MurineAirwaySegmentation/blob/main/airway_segmentation_planner.py)) to better address the unique challenges presented by pulmonary imaging.
 
 # Installation
 Our installation instructions make use of concrete git commit hashes for batchgenerators and nnU-Net in order to 
