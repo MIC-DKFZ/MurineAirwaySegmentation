@@ -70,7 +70,8 @@ if __name__ == "__main__":
     for zf in tqdm(zip_files):
         if zf.name.replace(".zip", "") in train_set:
             shutil.unpack_archive(zf, download_path / "extracted", "zip")
-
+    
+    # specify the task ID that will be used in the nnUnet run functions. In our case its 145.
     task_name = "Task145_LungAirway"
     target_base = join(nnUNet_raw_data, task_name)
     target_imagesTr = join(target_base, "imagesTr")

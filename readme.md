@@ -66,9 +66,9 @@ Run the following:
 ```commandline
 nnUNet_plan_and_preprocess -t 145 -pl2d None -pl3d AirwaySegPlanner -tl 2 -tf 1
 ```
-This will take the raw data, perform nnU-Net's planning and preprocessing steps and save the preprocessed training data
+This will take the raw data, perform nnU-Net's planning and preprocessing steps and save the preprocessed training data. The parameter "-t 145" identifies the dataset number for which planning and preprocessing are to be performed (we specified this number in the data [conversion script](https://github.com/MIC-DKFZ/MurineAirwaySegmentation/blob/main/data_conversion.py)). The option "-pl2d None" specifies that a 2D model is not planned, while "-pl3d AirwaySegPlanner" indicates the planning for a 3D model using the modified airway segmentation planner found in [airway_segmentation_planner.py](https://github.com/MIC-DKFZ/MurineAirwaySegmentation/blob/main/airway_segmentation_planner.py). The settings "-tl 2 -tf 1" are used to limit the number of processes to a small number because the files are large, and we aim to minimize the risk of running out of RAM.
 
-Now we can run the training. Run the following to train the 5-fold cross-validation:
+We are now ready to run the training for the 3D full resolution model using the [nnUNetTrainerV2_airwayAug](https://github.com/MIC-DKFZ/MurineAirwaySegmentation/blob/main/nnUNetTrainerV2_airwayAug.py) trainer, which includes necessary adjustments for augmentation techniques tailored to the specific data artifacts we observed. Run the following to train the 5-fold cross-validation:
 ```commandline
 nnUNet_train 3d_fullres nnUNetTrainerV2_airwayAug 145 0 -p AirwaySegPlanner
 nnUNet_train 3d_fullres nnUNetTrainerV2_airwayAug 145 1 -p AirwaySegPlanner
@@ -76,6 +76,8 @@ nnUNet_train 3d_fullres nnUNetTrainerV2_airwayAug 145 2 -p AirwaySegPlanner
 nnUNet_train 3d_fullres nnUNetTrainerV2_airwayAug 145 3 -p AirwaySegPlanner
 nnUNet_train 3d_fullres nnUNetTrainerV2_airwayAug 145 4 -p AirwaySegPlanner
 ```
+The command nnUNet_train will execute training on the 3d_fullres model using the adjusted trainer nnUNetTrainerV2_airwayAug. It will process the dataset identified by number 145, across each fold (from 0 to 4). The option -p AirwaySegPlanner specifies the planner with adjusted sampling strategies.
+
 You can also run these simultaneously if you have multiple GPUS:
 ```commandline
 CUDA_VISIBLE_DEVICES=0 nnUNet_train 3d_fullres nnUNetTrainerV2_airwayAug 145 0 -p AirwaySegPlanner &
@@ -85,6 +87,7 @@ CUDA_VISIBLE_DEVICES=3 nnUNet_train 3d_fullres nnUNetTrainerV2_airwayAug 145 3 -
 CUDA_VISIBLE_DEVICES=4 nnUNet_train 3d_fullres nnUNetTrainerV2_airwayAug 145 4 -p AirwaySegPlanner &
 wait
 ```
+
 IMPORTANT: Wait with starting the last 4 folds (1, 2, 3, 4) until the training of the first fold has started using the 
 GPU. This is related to unpacking the training data which can only be done by one nnU-Net process (it would result in 
 read/write conflicts if several were to do this simultaneously).
@@ -105,7 +108,7 @@ CUDA_VISIBLE_DEVICES=2 nnUNet_predict -i FOLDER_WITH_INPUT_IMAGES -o OUTPUT_FOLD
 CUDA_VISIBLE_DEVICES=3 nnUNet_predict -i FOLDER_WITH_INPUT_IMAGES -o OUTPUT_FOLDER -t 145 -f 0 1 2 3 4 -m 3d_fullres -p AirwaySegPlanner -tr nnUNetTrainerV2_airwayAug --num_threads_preprocessing 1 --num_parts 4 --part_id 3 &
 wait 
 ```
-
+The command nnUNet_predict initiates the prediction phase of the nnU-Net framework using the 3d_fullres model configuration, which operates on high-resolution 3D data. The -i FOLDER_WITH_INPUT_IMAGES and -o OUTPUT_FOLDER parameters specify the directories for input images and output segmentation results, respectively. The -t 145 parameter designates the specific dataset identity used for the predictions, ensuring consistency with previously trained models. The use of -tr nnUNetTrainerV2_airwayAug indicates that the predictions will employ a trainer adjusted for specific augmentation techniques relevant to airway segmentation. The --num_threads_preprocessing 1 sets the number of threads for preprocessing to 1, controlling parallelism during data loading and preprocessing steps. The --num_parts 4 and --part_id 0 divide the prediction task into 4 parts and indicate that only the first part will be processed in this run, which is useful for managing memory usage or parallel processing.
 Inference will need a lot of RAM! >=128GB is a must!
 
 # Pretrained models
