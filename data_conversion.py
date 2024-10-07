@@ -1,16 +1,26 @@
 import shutil
 from pathlib import Path
-from tqdm import tqdm
+
+import numpy as np
+import SimpleITK
+from batchgenerators.utilities.file_and_folder_operations import *
 from nnunet.dataset_conversion.utils import generate_dataset_json
 from nnunet.paths import nnUNet_raw_data
 from tifffile import TiffFile
-import SimpleITK
-import numpy as np
-from batchgenerators.utilities.file_and_folder_operations import *
+from tqdm import tqdm
 
 
 def get_spacing_from_tif_airwaySeg(filename: str):
+    """
+    Extracts the spacing information from a TIFF file using its metadata.
+    If a file does not have metadata information, a default spacing is assigned.
+    
+    Args:
+        filename (str): Path to the TIFF file.
 
+    Returns:
+        tuple: A tuple containing the z, y, and x spacings. If spacing information is not available, returns default values.
+    """
     with TiffFile(filename) as tif:
         try:
             imagej_metadata = tif.imagej_metadata
@@ -31,6 +41,15 @@ def get_spacing_from_tif_airwaySeg(filename: str):
 
 
 def convert_to_nifti(input_filename, output_filename, spacing, is_seg=False):
+    """
+    Converts a TIFF image to a NIfTI file format, with specified spacing.
+    
+    Args:
+        input_filename (str): Path to the input TIFF file.
+        output_filename (str): Path where the output NIfTI file will be saved.
+        spacing (tuple): Spacing to set for the NIfTI image.
+        is_seg (bool): If True, the image is treated as a segmentation map, and all values greater than 0 are set to 1.
+    """
     with TiffFile(input_filename) as tif:
         npy_image = tif.asarray()
     if is_seg:

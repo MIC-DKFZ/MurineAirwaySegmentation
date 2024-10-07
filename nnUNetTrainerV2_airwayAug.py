@@ -2,39 +2,88 @@ from typing import Tuple
 
 import numpy as np
 from batchgenerators.dataloading.multi_threaded_augmenter import MultiThreadedAugmenter
-from batchgenerators.dataloading.nondet_multi_threaded_augmenter import NonDetMultiThreadedAugmenter
-from batchgenerators.transforms.abstract_transforms import Compose, AbstractTransform
-from batchgenerators.transforms.channel_selection_transforms import SegChannelSelectionTransform, \
-    DataChannelSelectionTransform
-from batchgenerators.transforms.color_transforms import BrightnessMultiplicativeTransform, \
-    ContrastAugmentationTransform, BrightnessTransform
-from batchgenerators.transforms.color_transforms import GammaTransform
-from batchgenerators.transforms.local_transforms import BrightnessGradientAdditiveTransform, LocalGammaTransform
-from batchgenerators.transforms.noise_transforms import GaussianNoiseTransform, GaussianBlurTransform, \
-    BlankRectangleTransform, MedianFilterTransform, SharpeningTransform
-from batchgenerators.transforms.resample_transforms import SimulateLowResolutionTransform
-from batchgenerators.transforms.spatial_transforms import MirrorTransform, \
-    SpatialTransform
-from batchgenerators.transforms.spatial_transforms import Rot90Transform, TransposeAxesTransform
-from batchgenerators.transforms.utility_transforms import RemoveLabelTransform, RenameTransform, NumpyToTensor
+from batchgenerators.dataloading.nondet_multi_threaded_augmenter import (
+    NonDetMultiThreadedAugmenter,
+)
+from batchgenerators.transforms.abstract_transforms import AbstractTransform, Compose
+from batchgenerators.transforms.channel_selection_transforms import (
+    DataChannelSelectionTransform,
+    SegChannelSelectionTransform,
+)
+from batchgenerators.transforms.color_transforms import (
+    BrightnessMultiplicativeTransform,
+    BrightnessTransform,
+    ContrastAugmentationTransform,
+    GammaTransform,
+)
+from batchgenerators.transforms.local_transforms import (
+    BrightnessGradientAdditiveTransform,
+    LocalGammaTransform,
+)
+from batchgenerators.transforms.noise_transforms import (
+    BlankRectangleTransform,
+    GaussianBlurTransform,
+    GaussianNoiseTransform,
+    MedianFilterTransform,
+    SharpeningTransform,
+)
+from batchgenerators.transforms.resample_transforms import (
+    SimulateLowResolutionTransform,
+)
+from batchgenerators.transforms.spatial_transforms import (
+    MirrorTransform,
+    Rot90Transform,
+    SpatialTransform,
+    TransposeAxesTransform,
+)
+from batchgenerators.transforms.utility_transforms import (
+    NumpyToTensor,
+    RemoveLabelTransform,
+    RenameTransform,
+)
 from batchgenerators.utilities.file_and_folder_operations import join, maybe_mkdir_p
-from scipy.ndimage import gaussian_filter
-from torch import nn
-
 from nnunet.network_architecture.neural_network import SegmentationNetwork
-from nnunet.training.data_augmentation.custom_transforms import Convert3DTo2DTransform, Convert2DTo3DTransform, \
-    MaskTransform, ConvertSegmentationToRegionsTransform
-from nnunet.training.data_augmentation.default_data_augmentation import default_3D_augmentation_params
-from nnunet.training.data_augmentation.downsampling import DownsampleSegForDSTransform3, DownsampleSegForDSTransform2
-from nnunet.training.data_augmentation.pyramid_augmentations import MoveSegAsOneHotToData, \
-    ApplyRandomBinaryOperatorTransform, \
-    RemoveRandomConnectedComponentFromOneHotEncodingTransform
+from nnunet.training.data_augmentation.custom_transforms import (
+    Convert2DTo3DTransform,
+    Convert3DTo2DTransform,
+    ConvertSegmentationToRegionsTransform,
+    MaskTransform,
+)
+from nnunet.training.data_augmentation.default_data_augmentation import (
+    default_3D_augmentation_params,
+)
+from nnunet.training.data_augmentation.downsampling import (
+    DownsampleSegForDSTransform2,
+    DownsampleSegForDSTransform3,
+)
+from nnunet.training.data_augmentation.pyramid_augmentations import (
+    ApplyRandomBinaryOperatorTransform,
+    MoveSegAsOneHotToData,
+    RemoveRandomConnectedComponentFromOneHotEncodingTransform,
+)
 from nnunet.training.dataloading.dataset_loading import unpack_dataset
 from nnunet.training.loss_functions.deep_supervision import MultipleOutputLoss2
 from nnunet.training.network_training.nnUNetTrainerV2 import nnUNetTrainerV2
+from scipy.ndimage import gaussian_filter
+from torch import nn
 
 
 class InhomogeneousSliceIlluminationTransform(AbstractTransform):
+    """
+    This transform simulates inhomogeneous illumination across image slices, introducing intensity variations
+    to mimic realistic imaging artifacts.
+
+    Attributes:
+        num_defects (Tuple): Range for the number of illumination defects to introduce.
+        defect_width (Tuple): Range for the width of the defects.
+        mult_brightness_reduction_at_defect (Float): Brightness reduction at defect areas.
+        base_p (tuple): Base probability for defects to appear.
+        base_red (Tuple[float, float]): Range of reduction factors for defect intensities.
+        p_per_sample (float): Probability of applying the transform per image sample.
+        per_channel (bool): Whether to apply the transform independently per channel.
+        p_per_channel (float): Probability of applying the transform to each channel.
+        data_key (str): Key for accessing the data within the data dictionary.
+    """
     def __init__(self, num_defects, defect_width, mult_brightness_reduction_at_defect, base_p,
                  base_red: Tuple[float, float], p_per_sample=1, per_channel=True, p_per_channel=0.5, data_key='data'):
         super().__init__()
@@ -43,7 +92,6 @@ class InhomogeneousSliceIlluminationTransform(AbstractTransform):
         self.mult_brightness_reduction_at_defect = mult_brightness_reduction_at_defect
         self.base_p = base_p
         self.base_red = base_red
-        self.num_defects = num_defects
         self.p_per_sample = p_per_sample
         self.per_channel = per_channel
         self.p_per_channel = p_per_channel
@@ -51,6 +99,15 @@ class InhomogeneousSliceIlluminationTransform(AbstractTransform):
 
     @staticmethod
     def _sample(stuff):
+        """
+        Samples a value based on its type.
+
+        Args:
+            value: Can be a float, int, tuple, list, or a callable function.
+
+        Returns:
+            A sampled value based on the type of the input.
+        """
         if isinstance(stuff, (float, int)):
             return stuff
         elif isinstance(stuff, (tuple, list)):
@@ -59,9 +116,18 @@ class InhomogeneousSliceIlluminationTransform(AbstractTransform):
         elif callable(stuff):
             return stuff()
         else:
-            raise ValueError('hmmm')
+            raise ValueError('Invalid input for sampling.')
 
     def _build_defects(self, num_slices):
+        """
+        Constructs the inhomogeneous illumination pattern by creating Gaussian-shaped defects.
+
+        Args:
+            num_slices (int): Number of slices in the 3D image.
+
+        Returns:
+            np.ndarray: Array of intensity factors for each slice.
+        """
         int_factors = np.ones(num_slices)
 
         # gaussian shaped ilumination changes
@@ -86,6 +152,15 @@ class InhomogeneousSliceIlluminationTransform(AbstractTransform):
         return int_factors
 
     def __call__(self, **data_dict):
+        """
+        Applies the inhomogeneous illumination transform to the input data.
+
+        Args:
+            data_dict (dict): Dictionary containing the input data.
+
+        Returns:
+            dict: Transformed data dictionary.
+        """
         data = data_dict.get(self.data_key)
         assert data is not None
         assert len(
@@ -113,6 +188,30 @@ def get_moreDA_augmentation_airway(dataloader_train, dataloader_val, patch_size,
                                    soft_ds=False,
                                    classes=None, pin_memory=True, regions=None,
                                    use_nondetMultiThreadedAugmenter: bool = False):
+    """
+    Creates data augmentation pipelines for training and validation datasets with extended transformations specific
+    to airway segmentation tasks.
+
+    Args:
+        dataloader_train: Dataloader for training data.
+        dataloader_val: Dataloader for validation data.
+        patch_size: The size of the patches to be used for spatial transformations.
+        params: Dictionary containing parameters for augmentations.
+        border_val_seg: Value to be used for segmentation borders.
+        seeds_train: Seeds for randomization in training.
+        seeds_val: Seeds for randomization in validation.
+        order_seg: Order of interpolation for segmentation data.
+        order_data: Order of interpolation for image data.
+        deep_supervision_scales: Scales for deep supervision during training.
+        soft_ds: Whether to use soft deep supervision.
+        classes: List of classes for segmentation.
+        pin_memory: Whether to use pinned memory for data loaders.
+        regions: Segmentation regions to convert to regions.
+        use_nondetMultiThreadedAugmenter: Flag to use a non-deterministic augmenter.
+
+    Returns:
+        Tuple: Augmenters for training and validation data.
+    """
     assert params.get('mirror') is None, "old version of params, use new keyword do_mirror"
 
     tr_transforms = []
@@ -368,10 +467,18 @@ def get_moreDA_augmentation_airway(dataloader_train, dataloader_val, patch_size,
 
 
 class nnUNetTrainerV2_airwayAug(nnUNetTrainerV2):
+    """
+    Custom trainer class that extends nnUNetTrainerV2 to include specialized data augmentation techniques for airway
+    segmentation.
+    """
     def initialize(self, training=True, force_load_plans=False):
         """
         relative to nnUNetTrainerV2 all we do here is replace the original data augmentation scheme with
         get_moreDA_augmentation_airway. The rest is unchanged
+
+        Args:
+            training (bool): If True, initializes the training data generators.
+            force_load_plans (bool): If True, forces the loading of plan files.
         """
         if not self.was_initialized:
             maybe_mkdir_p(self.output_folder)
